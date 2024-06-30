@@ -1,7 +1,29 @@
-import express from 'express'
+import express, { Request, Response } from 'express';
+import dotenv from 'dotenv';
+import cors, { CorsOptions } from 'cors';
+import userRouter from './routes/userRoutes';
 
-const app = express()
-app.use(express.json())
+dotenv.config();
 
-app.listen(3000)
-console.log('Server running on port 3000')
+const app = express();
+app.use(express.json());
+
+// Cross-Origin Resource Sharing
+const whitelist = [process.env.FRONTEND_URL];
+const corsOptions: CorsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}
+app.use(cors(corsOptions));
+
+app.use('/api/users', userRouter)
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
